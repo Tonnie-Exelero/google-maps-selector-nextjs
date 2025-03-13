@@ -2,7 +2,7 @@
 
 A responsive single-page React TypeScript application that allows users to select between Australian states or campus locations. The application provides an intuitive interface for selecting locations and visualizing campus areas on a map.
 
-![State/Campus Selector](https://placeholder.svg?height=400&width=800)
+![State/Campus Selector](/screenshot.png)
 
 ## Features
 
