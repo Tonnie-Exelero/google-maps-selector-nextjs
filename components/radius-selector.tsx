@@ -368,7 +368,6 @@ export default function RadiusSelector({
                   }}
                 >
                   <Marker position={location.coordinates} />
-                  {/* Remove the Circle component - we're managing it manually */}
                 </GoogleMap>
                 <Box
                   sx={{
