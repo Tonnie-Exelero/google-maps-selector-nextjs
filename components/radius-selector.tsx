@@ -9,7 +9,6 @@ import {
   IconButton,
   Paper,
   InputAdornment,
-  useMediaQuery,
   useTheme,
   CircularProgress,
   Tooltip,
@@ -23,12 +22,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "@mui/icons-material";
-import {
-  GoogleMap,
-  useJsApiLoader,
-  Circle,
-  Marker,
-} from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 
 interface RadiusLocation {
   id: number;
@@ -44,19 +38,15 @@ interface RadiusSelectorProps {
   showRemoveButton: boolean;
 }
 
-// This would normally come from environment variables
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
-// Declare the google variable
 declare global {
   interface Window {
     google: any;
   }
 }
 
-// Function to calculate appropriate zoom level based on radius
 const getZoomForRadius = (radius: number): number => {
-  // These values are approximate and may need adjustment
   if (radius >= 200000) return 7;
   if (radius >= 100000) return 8;
   if (radius >= 50000) return 9;
@@ -65,7 +55,6 @@ const getZoomForRadius = (radius: number): number => {
   return 12;
 };
 
-// Format radius for display
 const formatRadius = (radius: number): string => {
   return (radius / 1000).toFixed(1) + " km";
 };
@@ -78,11 +67,11 @@ export default function RadiusSelector({
 }: RadiusSelectorProps) {
   const [autocomplete, setAutocomplete] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [mapZoom, setMapZoom] = useState(11); // Default zoom level
+  const [mapZoom, setMapZoom] = useState(11);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const inputRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<any>(null);
+  const circleRef = useRef<any>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
@@ -90,17 +79,55 @@ export default function RadiusSelector({
     libraries: ["places"],
   });
 
-  // Update zoom level when radius changes
+  // Create or update circle when map is loaded or location changes
+  const updateCircle = useCallback(() => {
+    if (!mapRef.current || !location.coordinates) return;
+
+    if (!circleRef.current) {
+      // Create new circle if it doesn't exist
+      circleRef.current = new window.google.maps.Circle({
+        map: mapRef.current,
+        center: location.coordinates,
+        radius: location.radius,
+        fillColor: theme.palette.primary.main,
+        fillOpacity: 0.2,
+        strokeColor: theme.palette.primary.main,
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+      });
+    } else {
+      // Update existing circle
+      circleRef.current.setCenter(location.coordinates);
+      circleRef.current.setRadius(location.radius);
+    }
+  }, [location.coordinates, location.radius, theme.palette.primary.main]);
+
+  // Update zoom level and circle when radius changes
   useEffect(() => {
     if (location.coordinates) {
       setMapZoom(getZoomForRadius(location.radius));
+      updateCircle();
     }
-  }, [location.radius, location.coordinates]);
+  }, [location.radius, location.coordinates, updateCircle]);
+
+  // Cleanup circle on unmount
+  useEffect(() => {
+    return () => {
+      if (circleRef.current) {
+        circleRef.current.setMap(null);
+        circleRef.current = null;
+      }
+    };
+  }, []);
 
   // Map load callback
-  const onMapLoad = useCallback((map: any) => {
-    mapRef.current = map;
-  }, []);
+  const onMapLoad = useCallback(
+    (map: any) => {
+      mapRef.current = map;
+      updateCircle();
+    },
+    [updateCircle]
+  );
 
   useEffect(() => {
     if (isLoaded && inputRef.current) {
@@ -163,12 +190,6 @@ export default function RadiusSelector({
     borderRadius: theme.shape.borderRadius,
   };
 
-  const defaultCenter = {
-    lat: -25.2744, // Default to Australia
-    lng: 133.7751,
-  };
-
-  // Manual zoom controls
   const handleZoomIn = () => {
     if (mapRef.current) {
       mapRef.current.setZoom((mapRef.current.getZoom() || mapZoom) + 1);
@@ -343,21 +364,11 @@ export default function RadiusSelector({
                     streetViewControl: false,
                     mapTypeControl: false,
                     fullscreenControl: true,
-                    zoomControl: false, // We'll use our own zoom controls
+                    zoomControl: false,
                   }}
                 >
                   <Marker position={location.coordinates} />
-                  <Circle
-                    center={location.coordinates}
-                    radius={location.radius}
-                    options={{
-                      fillColor: theme.palette.primary.main,
-                      fillOpacity: 0.2,
-                      strokeColor: theme.palette.primary.main,
-                      strokeOpacity: 0.8,
-                      strokeWeight: 2,
-                    }}
-                  />
+                  {/* Remove the Circle component - we're managing it manually */}
                 </GoogleMap>
                 <Box
                   sx={{
