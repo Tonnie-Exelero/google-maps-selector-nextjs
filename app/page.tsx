@@ -9,7 +9,7 @@ export default function Home() {
           Location Selector
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Select between Australian states or campus locations
+          Select between Australian states or radius-based locations
         </Typography>
       </Box>
       <LocationSelector />

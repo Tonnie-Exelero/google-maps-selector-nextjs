@@ -16,9 +16,9 @@ import {
   Divider,
 } from "@mui/material"
 import StateSelector from "./state-selector"
-import CampusContainer from "./campus-container"
+import RadiusContainer from "./radius-container"
 
-type LocationType = "state" | "campus"
+type LocationType = "state" | "radius"
 
 export default function LocationSelector() {
   const [locationType, setLocationType] = useState<LocationType>("state")
@@ -51,14 +51,14 @@ export default function LocationSelector() {
             sx={{ justifyContent: "flex-start" }}
           >
             <FormControlLabel value="state" control={<Radio />} label="State" sx={{ mr: 6 }} />
-            <FormControlLabel value="campus" control={<Radio />} label="Campus" />
+            <FormControlLabel value="radius" control={<Radio />} label="Radius" />
           </RadioGroup>
         </FormControl>
       </Box>
 
       <Divider />
 
-      {locationType === "state" ? <StateSelector /> : <CampusContainer />}
+      {locationType === "state" ? <StateSelector /> : <RadiusContainer />}
     </Paper>
   )
 }

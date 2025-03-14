@@ -14,19 +14,26 @@ export default function ThemeRegistry({ children }: ThemeRegistryProps) {
       palette: {
         mode: "light",
         primary: {
-          main: "#2563eb", // Blue
+          main: "#3949ab", // Indigo
+          light: "#6f74dd",
+          dark: "#00227b",
+          contrastText: "#ffffff",
         },
         secondary: {
-          main: "#10b981", // Green
+          main: "#00897b", // Teal
+          light: "#4ebaaa",
+          dark: "#005b4f",
+          contrastText: "#ffffff",
         },
         background: {
-          default: "#f8fafc",
+          default: "#f5f7fa",
           paper: "#ffffff",
         },
         text: {
           primary: "#1e293b",
           secondary: "#64748b",
         },
+        divider: "rgba(0, 0, 0, 0.08)",
       },
       typography: {
         fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -47,14 +54,19 @@ export default function ThemeRegistry({ children }: ThemeRegistryProps) {
         },
         h6: {
           fontWeight: 600,
+          fontSize: "1.25rem",
         },
         subtitle1: {
           fontWeight: 600,
+          fontSize: "1.1rem",
         },
         button: {
           textTransform: "none",
           fontWeight: 500,
         },
+      },
+      shape: {
+        borderRadius: 10,
       },
       components: {
         MuiButton: {
@@ -62,6 +74,10 @@ export default function ThemeRegistry({ children }: ThemeRegistryProps) {
             root: {
               borderRadius: 8,
               padding: "8px 16px",
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+              },
             },
           },
         },
@@ -91,12 +107,35 @@ export default function ThemeRegistry({ children }: ThemeRegistryProps) {
               height: 20,
               width: 20,
             },
+            track: {
+              height: 8,
+              borderRadius: 4,
+            },
+            rail: {
+              height: 8,
+              borderRadius: 4,
+            },
           },
         },
         MuiDivider: {
           styleOverrides: {
             root: {
               margin: "24px 0",
+            },
+          },
+        },
+        MuiChip: {
+          styleOverrides: {
+            root: {
+              borderRadius: 6,
+              fontWeight: 500,
+            },
+          },
+        },
+        MuiAlert: {
+          styleOverrides: {
+            root: {
+              borderRadius: 8,
             },
           },
         },

@@ -1,36 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Box, Button, Typography, Alert } from "@mui/material"
-import CampusSelector from "./campus-selector"
-import { Add } from "@mui/icons-material"
+import { useState } from "react";
+import { Box, Button, Typography, Alert } from "@mui/material";
+import CampusSelector from "./campus-selector";
+import { Add } from "@mui/icons-material";
 
 interface Campus {
-  id: number
-  location: string
-  coordinates: { lat: number; lng: number } | null
-  radius: number
+  id: number;
+  location: string;
+  coordinates: { lat: number; lng: number } | null;
+  radius: number;
 }
 
 export default function CampusContainer() {
-  const [campuses, setCampuses] = useState<Campus[]>([{ id: 1, location: "", coordinates: null, radius: 5000 }])
+  const [campuses, setCampuses] = useState<Campus[]>([
+    { id: 1, location: "", coordinates: null, radius: 1000 },
+  ]);
 
   const handleAddCampus = () => {
-    const newId = Math.max(...campuses.map((c) => c.id), 0) + 1
-    setCampuses([...campuses, { id: newId, location: "", coordinates: null, radius: 1000 }])
-  }
+    const newId = Math.max(...campuses.map((c) => c.id), 0) + 1;
+    setCampuses([
+      ...campuses,
+      { id: newId, location: "", coordinates: null, radius: 1000 },
+    ]);
+  };
 
   const handleUpdateCampus = (updatedCampus: Campus) => {
-    setCampuses(campuses.map((campus) => (campus.id === updatedCampus.id ? updatedCampus : campus)))
-  }
+    setCampuses(
+      campuses.map((campus) =>
+        campus.id === updatedCampus.id ? updatedCampus : campus
+      )
+    );
+  };
 
   const handleRemoveCampus = (id: number) => {
     if (campuses.length > 1) {
-      setCampuses(campuses.filter((campus) => campus.id !== id))
+      setCampuses(campuses.filter((campus) => campus.id !== id));
     }
-  }
+  };
 
-  const hasSelectedLocations = campuses.some((campus) => campus.coordinates !== null)
+  const hasSelectedLocations = campuses.some(
+    (campus) => campus.coordinates !== null
+  );
 
   return (
     <Box sx={{ mt: 3 }}>
@@ -39,7 +50,8 @@ export default function CampusContainer() {
       </Typography>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Search for campus locations and adjust the radius for each. You can add multiple campuses as needed.
+        Search for campus locations and adjust the radius for each. You can add
+        multiple campuses as needed.
       </Typography>
 
       {campuses.map((campus) => (
@@ -52,7 +64,13 @@ export default function CampusContainer() {
         />
       ))}
 
-      <Button variant="outlined" startIcon={<Add />} onClick={handleAddCampus} sx={{ mt: 2, mb: 3 }} fullWidth>
+      <Button
+        variant="outlined"
+        startIcon={<Add />}
+        onClick={handleAddCampus}
+        sx={{ mt: 2, mb: 3 }}
+        fullWidth
+      >
         Add Another Campus
       </Button>
 
@@ -62,6 +80,5 @@ export default function CampusContainer() {
         </Alert>
       )}
     </Box>
-  )
+  );
 }
-

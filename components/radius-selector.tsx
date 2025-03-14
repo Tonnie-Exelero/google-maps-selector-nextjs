@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Box,
   TextField,
@@ -14,8 +14,15 @@ import {
   CircularProgress,
   Tooltip,
   Grid,
+  Fade,
 } from "@mui/material";
-import { Delete, LocationOn, Search } from "@mui/icons-material";
+import {
+  Delete,
+  LocationOn,
+  Search,
+  ZoomIn,
+  ZoomOut,
+} from "@mui/icons-material";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -23,16 +30,16 @@ import {
   Marker,
 } from "@react-google-maps/api";
 
-interface Campus {
+interface RadiusLocation {
   id: number;
   location: string;
   coordinates: { lat: number; lng: number } | null;
   radius: number;
 }
 
-interface CampusSelectorProps {
-  campus: Campus;
-  onUpdate: (campus: Campus) => void;
+interface RadiusSelectorProps {
+  location: RadiusLocation;
+  onUpdate: (location: RadiusLocation) => void;
   onRemove: (id: number) => void;
   showRemoveButton: boolean;
 }
@@ -47,24 +54,53 @@ declare global {
   }
 }
 
-export default function CampusSelector({
-  campus,
+// Function to calculate appropriate zoom level based on radius
+const getZoomForRadius = (radius: number): number => {
+  // These values are approximate and may need adjustment
+  if (radius >= 200000) return 7;
+  if (radius >= 100000) return 8;
+  if (radius >= 50000) return 9;
+  if (radius >= 25000) return 10;
+  if (radius >= 10000) return 11;
+  return 12;
+};
+
+// Format radius for display
+const formatRadius = (radius: number): string => {
+  return (radius / 1000).toFixed(1) + " km";
+};
+
+export default function RadiusSelector({
+  location,
   onUpdate,
   onRemove,
   showRemoveButton,
-}: CampusSelectorProps) {
-  const [autocomplete, setAutocomplete] =
-    useState<google.maps.places.Autocomplete | null>(null);
+}: RadiusSelectorProps) {
+  const [autocomplete, setAutocomplete] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [mapZoom, setMapZoom] = useState(11); // Default zoom level
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const inputRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<any>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
   });
+
+  // Update zoom level when radius changes
+  useEffect(() => {
+    if (location.coordinates) {
+      setMapZoom(getZoomForRadius(location.radius));
+    }
+  }, [location.radius, location.coordinates]);
+
+  // Map load callback
+  const onMapLoad = useCallback((map: any) => {
+    mapRef.current = map;
+  }, []);
 
   useEffect(() => {
     if (isLoaded && inputRef.current) {
@@ -86,7 +122,7 @@ export default function CampusSelector({
               lng: place.geometry.location.lng(),
             };
             onUpdate({
-              ...campus,
+              ...location,
               location: place.formatted_address || "",
               coordinates: newCoordinates,
             });
@@ -112,11 +148,11 @@ export default function CampusSelector({
         }
       }
     };
-  }, [isLoaded, campus, onUpdate]);
+  }, [isLoaded, location, onUpdate]);
 
   const handleRadiusChange = (_event: Event, newValue: number | number[]) => {
     onUpdate({
-      ...campus,
+      ...location,
       radius: newValue as number,
     });
   };
@@ -132,6 +168,19 @@ export default function CampusSelector({
     lng: 133.7751,
   };
 
+  // Manual zoom controls
+  const handleZoomIn = () => {
+    if (mapRef.current) {
+      mapRef.current.setZoom((mapRef.current.getZoom() || mapZoom) + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapRef.current) {
+      mapRef.current.setZoom((mapRef.current.getZoom() || mapZoom) - 1);
+    }
+  };
+
   return (
     <Paper
       elevation={2}
@@ -140,6 +189,10 @@ export default function CampusSelector({
         mb: 3,
         position: "relative",
         backgroundColor: "background.paper",
+        transition: "all 0.3s ease",
+        "&:hover": {
+          boxShadow: theme.shadows[4],
+        },
       }}
     >
       <Box
@@ -151,15 +204,15 @@ export default function CampusSelector({
         }}
       >
         <Typography variant="subtitle1" fontWeight="medium">
-          Campus {campus.id}
+          Location {location.id}
         </Typography>
         {showRemoveButton && (
-          <Tooltip title="Remove this campus">
+          <Tooltip title="Remove this location">
             <IconButton
               size="small"
               color="error"
-              onClick={() => onRemove(campus.id)}
-              aria-label="Remove campus"
+              onClick={() => onRemove(location.id)}
+              aria-label="Remove location"
             >
               <Delete />
             </IconButton>
@@ -174,8 +227,10 @@ export default function CampusSelector({
             label="Search for a location"
             variant="outlined"
             fullWidth
-            value={campus.location}
-            onChange={(e) => onUpdate({ ...campus, location: e.target.value })}
+            value={location.location}
+            onChange={(e) =>
+              onUpdate({ ...location, location: e.target.value })
+            }
             sx={{ mb: 3 }}
             InputProps={{
               startAdornment: (
@@ -184,7 +239,7 @@ export default function CampusSelector({
                 </InputAdornment>
               ),
             }}
-            placeholder="Enter a campus location"
+            placeholder="Enter a location"
             disabled={!isLoaded}
             helperText={
               !isLoaded
@@ -197,30 +252,41 @@ export default function CampusSelector({
           />
 
           <Box sx={{ mb: 2 }}>
-            <Typography id={`radius-slider-${campus.id}`} gutterBottom>
-              Radius: {campus.radius} meters
+            <Typography id={`radius-slider-${location.id}`} gutterBottom>
+              Radius: {formatRadius(location.radius)}
             </Typography>
             <Slider
-              value={campus.radius}
+              value={location.radius}
               onChange={handleRadiusChange}
-              aria-labelledby={`radius-slider-${campus.id}`}
-              min={100}
-              max={5000}
-              step={100}
+              aria-labelledby={`radius-slider-${location.id}`}
+              min={10000}
+              max={250000}
+              step={5000}
               marks={[
-                { value: 100, label: "100m" },
-                { value: 2500, label: "2.5km" },
-                { value: 5000, label: "5km" },
+                { value: 10000, label: "10km" },
+                { value: 50000, label: "50km" },
+                { value: 150000, label: "150km" },
+                { value: 250000, label: "250km" },
               ]}
-              disabled={!campus.coordinates}
+              disabled={!location.coordinates}
+              sx={{
+                "& .MuiSlider-thumb": {
+                  transition: "left 0.2s ease",
+                },
+                "& .MuiSlider-track": {
+                  transition: "width 0.2s ease",
+                },
+              }}
             />
           </Box>
 
-          {campus.coordinates && (
-            <Typography variant="body2" color="text.secondary">
-              Selected coordinates: {campus.coordinates.lat.toFixed(6)},{" "}
-              {campus.coordinates.lng.toFixed(6)}
-            </Typography>
+          {location.coordinates && (
+            <Fade in={!!location.coordinates}>
+              <Typography variant="body2" color="text.secondary">
+                Selected coordinates: {location.coordinates.lat.toFixed(6)},{" "}
+                {location.coordinates.lng.toFixed(6)}
+              </Typography>
+            </Fade>
           )}
         </Grid>
 
@@ -233,10 +299,11 @@ export default function CampusSelector({
               alignItems: "center",
               minHeight: "300px",
               border:
-                !isLoaded || !campus.coordinates
+                !isLoaded || !location.coordinates
                   ? `1px dashed ${theme.palette.divider}`
                   : "none",
               borderRadius: theme.shape.borderRadius,
+              position: "relative",
             }}
           >
             {!isLoaded && (
@@ -254,7 +321,7 @@ export default function CampusSelector({
               </Box>
             )}
 
-            {isLoaded && !loadError && !campus.coordinates && (
+            {isLoaded && !loadError && !location.coordinates && (
               <Box sx={{ textAlign: "center", p: 3 }}>
                 <LocationOn
                   sx={{ fontSize: 40, color: "text.secondary", mb: 2 }}
@@ -265,30 +332,61 @@ export default function CampusSelector({
               </Box>
             )}
 
-            {isLoaded && !loadError && campus.coordinates && (
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={campus.coordinates}
-                zoom={14}
-                options={{
-                  streetViewControl: false,
-                  mapTypeControl: false,
-                  fullscreenControl: true,
-                }}
-              >
-                <Marker position={campus.coordinates} />
-                <Circle
-                  center={campus.coordinates}
-                  radius={campus.radius}
+            {isLoaded && !loadError && location.coordinates && (
+              <>
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={location.coordinates}
+                  zoom={mapZoom}
+                  onLoad={onMapLoad}
                   options={{
-                    fillColor: theme.palette.primary.main,
-                    fillOpacity: 0.2,
-                    strokeColor: theme.palette.primary.main,
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: true,
+                    zoomControl: false, // We'll use our own zoom controls
                   }}
-                />
-              </GoogleMap>
+                >
+                  <Marker position={location.coordinates} />
+                  <Circle
+                    center={location.coordinates}
+                    radius={location.radius}
+                    options={{
+                      fillColor: theme.palette.primary.main,
+                      fillOpacity: 0.2,
+                      strokeColor: theme.palette.primary.main,
+                      strokeOpacity: 0.8,
+                      strokeWeight: 2,
+                    }}
+                  />
+                </GoogleMap>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    right: 10,
+                    top: 10,
+                    zIndex: 10,
+                    backgroundColor: "rgba(255,255,255,0.8)",
+                    borderRadius: "4px",
+                    boxShadow: 1,
+                    p: 0.5,
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={handleZoomIn}
+                    aria-label="Zoom in"
+                  >
+                    <ZoomIn />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={handleZoomOut}
+                    aria-label="Zoom out"
+                  >
+                    <ZoomOut />
+                  </IconButton>
+                </Box>
+              </>
             )}
           </Box>
         </Grid>
