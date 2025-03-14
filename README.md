@@ -1,4 +1,4 @@
-# State/Campus Selector Application
+# State/Radius Selector Application
 
 A responsive single-page React TypeScript application that allows users to select between Australian states or radius-based locations. The application provides an intuitive interface for selecting locations and visualizing location areas on a map.
 
