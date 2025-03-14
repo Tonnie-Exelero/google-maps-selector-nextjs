@@ -52,6 +52,8 @@ cd state-campus-selector
 npm install
 # or
 yarn install
+# or
+pnpm install
 ```
 
 3. Add environment variables:
@@ -66,6 +68,8 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 npm run dev
 # or
 yarn dev
+# or
+pnpm run dev
 ```
 
 5. Build the application:
@@ -82,4 +86,6 @@ yarn build
 npm start
 # or
 yarn start
+# or
+pnpm start
 ```
