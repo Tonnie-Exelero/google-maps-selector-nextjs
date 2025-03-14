@@ -78,6 +78,8 @@ pnpm run dev
 npm run build
 # or
 yarn build
+# or
+pnpm run build
 ```
 
 6. Start the production server:
