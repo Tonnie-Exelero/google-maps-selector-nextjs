@@ -2,7 +2,7 @@
 
 A responsive single-page React TypeScript application that allows users to select between Australian states or radius-based locations. The application provides an intuitive interface for selecting locations and visualizing location areas on a map.
 
-![State/Campus Selector](/screenshot.png)
+![State/Radius Selector](/screenshot.png)
 
 ## Features
 
@@ -42,8 +42,8 @@ Before you begin, ensure you have:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/state-campus-selector.git
-cd state-campus-selector
+git clone https://github.com/Tonnie-Exelero/google-maps-selector-nextjs.git
+cd google-maps-selector-nextjs
 ```
 
 2. Install dependencies:
