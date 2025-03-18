@@ -14,7 +14,7 @@ interface RadiusLocation {
 
 export default function RadiusContainer() {
   const [locations, setLocations] = useState<RadiusLocation[]>([
-    { id: 1, location: "", coordinates: null, radius: 10000 },
+    { id: 1, location: "", coordinates: null, radius: 50000 },
   ]);
 
   const handleAddLocation = () => {
