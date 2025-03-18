@@ -47,12 +47,11 @@ declare global {
 }
 
 const getZoomForRadius = (radius: number): number => {
-  if (radius >= 200000) return 7;
+  if (radius >= 200000) return 6;
+  if (radius >= 150000) return 7;
   if (radius >= 100000) return 8;
   if (radius >= 50000) return 9;
-  if (radius >= 25000) return 10;
-  if (radius >= 10000) return 11;
-  return 12;
+  return 10;
 };
 
 const formatRadius = (radius: number): string => {
@@ -280,13 +279,14 @@ export default function RadiusSelector({
               value={location.radius}
               onChange={handleRadiusChange}
               aria-labelledby={`radius-slider-${location.id}`}
-              min={10000}
+              min={50000}
               max={250000}
               step={5000}
               marks={[
-                { value: 10000, label: "10km" },
                 { value: 50000, label: "50km" },
+                { value: 100000, label: "100km" },
                 { value: 150000, label: "150km" },
+                { value: 200000, label: "200km" },
                 { value: 250000, label: "250km" },
               ]}
               disabled={!location.coordinates}
